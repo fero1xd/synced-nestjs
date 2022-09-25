@@ -7,11 +7,13 @@ import * as passport from 'passport';
 import { getRepository } from 'typeorm';
 import { Session } from './utils/typeorm/entities';
 import { TypeormStore } from 'typeorm-store';
+import { WebsocketAdapter } from './gateway/gateway.adapter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.useGlobalPipes(new ValidationPipe());
   app.setGlobalPrefix('/api');
+  app.useWebSocketAdapter(new WebsocketAdapter(app));
 
   const { COOKIE_SECRET } = process.env;
 

@@ -1,5 +1,11 @@
 export enum AvailableLanguages {
   PYTHON = 'python',
+  JAVASCRIPT = 'javascript',
+}
+
+export enum AvailableExtensions {
+  PYTHON = 'py',
+  JAVASCRIPT = 'js',
 }
 
 export enum JobStatus {

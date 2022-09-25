@@ -1,6 +1,7 @@
 import { Request } from 'express';
-import { AvailableLanguages } from './enums';
+import { AvailableExtensions, AvailableLanguages } from './enums';
 import { User } from './typeorm/entities';
+import { Socket } from 'socket.io';
 
 export type ValidateUserParams = {
   email: string;
@@ -25,3 +26,12 @@ export type CreateJobParams = {
   code: string;
   user: User;
 };
+
+export type GenerateFileParams = {
+  extension: AvailableExtensions;
+  code: string;
+};
+
+export interface AuthenticatedSocket extends Socket {
+  user?: User;
+}

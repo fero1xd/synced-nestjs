@@ -1,9 +1,9 @@
+import { Exclude } from 'class-transformer';
 import { AvailableLanguages, JobStatus } from 'src/utils/enums';
 import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
-  OneToOne,
   JoinColumn,
   CreateDateColumn,
   ManyToOne,
@@ -22,6 +22,7 @@ export class Job {
   language: AvailableLanguages;
 
   @Column()
+  @Exclude()
   filePath: string;
 
   @CreateDateColumn()
