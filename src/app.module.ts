@@ -5,6 +5,7 @@ import { AuthModule } from './auth/auth.module';
 import entities from './utils/typeorm/entities';
 import { PassportModule } from '@nestjs/passport';
 import { JobsModule } from './jobs/jobs.module';
+import { GatewayModule } from './gateway/gateway.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { JobsModule } from './jobs/jobs.module';
     PassportModule.register({ session: true }),
     AuthModule,
     JobsModule,
+    GatewayModule,
   ],
 })
 export class AppModule {}
