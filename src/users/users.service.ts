@@ -30,6 +30,8 @@ export class UsersService {
   }
 
   async userExists(email: string) {
-    return await this.userRepository.findOne({ where: { email } });
+    return await this.userRepository.findOne({
+      where: { email },
+    });
   }
 }

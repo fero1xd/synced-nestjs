@@ -21,10 +21,16 @@ export type GetJobByIdParams = {
   user: User;
 };
 
+export type StartJobParams = GetJobByIdParams;
+
 export type CreateJobParams = {
-  language: AvailableLanguages;
-  code: string;
+  projectId: string;
   user: User;
+};
+
+export type GetAllJobsParams = {
+  user: User;
+  id: string;
 };
 
 export type GenerateFileParams = {
@@ -35,3 +41,25 @@ export type GenerateFileParams = {
 export interface AuthenticatedSocket extends Socket {
   user?: User;
 }
+
+export type CreateProjectParams = {
+  name: string;
+  language: AvailableLanguages;
+  code: string;
+  user: User;
+};
+
+export type SaveProjectParams = {
+  id: string;
+  name?: string;
+  language?: AvailableLanguages;
+  code?: string;
+  user: User;
+};
+
+export type DeleteProjectParams = {
+  id: string;
+  user: User;
+};
+
+export type GetProjectByIdParams = DeleteProjectParams;

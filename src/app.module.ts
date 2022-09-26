@@ -6,9 +6,17 @@ import entities from './utils/typeorm/entities';
 import { PassportModule } from '@nestjs/passport';
 import { JobsModule } from './jobs/jobs.module';
 import { GatewayModule } from './gateway/gateway.module';
+import { BullModule } from '@nestjs/bull';
+import { ProjectsModule } from './projects/project.module';
 
 @Module({
   imports: [
+    BullModule.forRoot({
+      redis: {
+        host: 'localhost',
+        port: 6379,
+      },
+    }),
     ConfigModule.forRoot({
       isGlobal: true,
     }),
@@ -24,6 +32,7 @@ import { GatewayModule } from './gateway/gateway.module';
     }),
     PassportModule.register({ session: true }),
     AuthModule,
+    ProjectsModule,
     JobsModule,
     GatewayModule,
   ],

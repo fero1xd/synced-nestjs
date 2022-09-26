@@ -5,9 +5,15 @@ export enum Services {
   JOBS_SERVICE = 'JOBS_SERVICE',
   FILE_MANAGER_SERVICE = 'FILE_MANAGER_SERVICE',
   GATEWAY_SESSION_MANAGER_SERVICE = 'GATEWAY_SESSION_MANAGER_SERVICE',
+  PROJECTS_SERVICE = 'PROJECTS_SERVICE',
 }
 
 export enum Routes {
   AUTH = 'auth',
+  JOBS = 'jobs',
+  PROJECTS = 'projects',
+}
+
+export enum Queues {
   JOBS = 'jobs',
 }

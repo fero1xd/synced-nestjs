@@ -1,10 +1,6 @@
-import { IsEnum, IsNotEmpty } from 'class-validator';
-import { AvailableLanguages } from 'src/utils/enums';
+import { IsNotEmpty } from 'class-validator';
 
 export class CreateJob {
-  @IsEnum(AvailableLanguages)
-  language: AvailableLanguages;
-
   @IsNotEmpty()
-  code: string;
+  projectId: string;
 }

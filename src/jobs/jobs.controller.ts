@@ -27,13 +27,18 @@ export class JobsController {
     return instanceToPlain(await this.jobsService.createJob({ user, ...data }));
   }
 
-  @Get()
-  async getAllJobs(@AuthUser() user: User) {
-    return instanceToPlain(await this.jobsService.getAllJobs(user));
+  @Get(':id')
+  async getAllJobs(@AuthUser() user: User, @Param('id') id: string) {
+    return instanceToPlain(await this.jobsService.getAllJobs({ id, user }));
   }
 
-  @Get('/:id')
+  @Get(':id/single')
   async getJobById(@AuthUser() user: User, @Param('id') id: string) {
     return instanceToPlain(await this.jobsService.getJobById({ id, user }));
+  }
+
+  @Get(':id/status')
+  async getJobStatus(@AuthUser() user: User, @Param('id') id: string) {
+    return (await this.jobsService.getJobById({ id, user })).status;
   }
 }

@@ -17,7 +17,9 @@ export class AuthService {
   async validateUser(params: ValidateUserParams) {
     const { email, password } = params;
 
-    const user = await this.userRepository.findOne({ where: { email } });
+    const user = await this.userRepository.findOne({
+      where: { email },
+    });
 
     if (!user) throw new UnauthorizedException('Invalid Credentials');
 

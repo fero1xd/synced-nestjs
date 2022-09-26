@@ -1,25 +1,18 @@
 import { Exclude } from 'class-transformer';
-import { AvailableLanguages, JobStatus } from 'src/utils/enums';
+import { JobStatus } from 'src/utils/enums';
 import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
-  JoinColumn,
   CreateDateColumn,
   ManyToOne,
 } from 'typeorm';
-import { User } from './User';
+import { Project } from './Project';
 
 @Entity({ name: 'jobs' })
 export class Job {
   @PrimaryGeneratedColumn()
   id: number;
-
-  @Column({
-    type: 'enum',
-    enum: AvailableLanguages,
-  })
-  language: AvailableLanguages;
 
   @Column()
   @Exclude()
@@ -40,7 +33,6 @@ export class Job {
   @Column({ nullable: true })
   output: string;
 
-  @ManyToOne(() => User)
-  @JoinColumn()
-  user: User;
+  @ManyToOne(() => Project)
+  project: Project;
 }
