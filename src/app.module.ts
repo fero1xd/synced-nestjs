@@ -8,9 +8,11 @@ import { JobsModule } from './jobs/jobs.module';
 import { GatewayModule } from './gateway/gateway.module';
 import { BullModule } from '@nestjs/bull';
 import { ProjectsModule } from './projects/project.module';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 
 @Module({
   imports: [
+    EventEmitterModule.forRoot(),
     BullModule.forRoot({
       redis: {
         host: 'localhost',

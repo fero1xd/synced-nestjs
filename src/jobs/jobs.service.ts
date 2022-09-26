@@ -49,7 +49,8 @@ export class JobsService {
     );
 
     await this.jobsQueue.add('process', {
-      id: job.id,
+      job,
+      user,
     });
 
     return job;

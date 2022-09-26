@@ -6,6 +6,7 @@ export enum Services {
   FILE_MANAGER_SERVICE = 'FILE_MANAGER_SERVICE',
   GATEWAY_SESSION_MANAGER_SERVICE = 'GATEWAY_SESSION_MANAGER_SERVICE',
   PROJECTS_SERVICE = 'PROJECTS_SERVICE',
+  PYTHON_RUNNER = 'PYTHON_RUNNER',
 }
 
 export enum Routes {
@@ -16,4 +17,8 @@ export enum Routes {
 
 export enum Queues {
   JOBS = 'jobs',
+}
+
+export enum Events {
+  OnJobDone = 'onJobDone',
 }

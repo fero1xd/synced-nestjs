@@ -6,9 +6,11 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 import { Server } from 'socket.io';
-import { Services } from 'src/utils/constants';
-import { AuthenticatedSocket } from 'src/utils/types';
+import { Events, Services } from 'src/utils/constants';
+import { AuthenticatedSocket, JobPayload } from 'src/utils/types';
 import { GatewaySessionManager } from './gateway.session';
+import { OnEvent } from '@nestjs/event-emitter';
+import { instanceToPlain } from 'class-transformer';
 
 @WebSocketGateway()
 export class Gateway implements OnGatewayConnection, OnGatewayDisconnect {
@@ -28,5 +30,17 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect {
   handleDisconnect(socket: AuthenticatedSocket) {
     console.log(`${socket.user.name} disconnected.`);
     this.sessionManager.removeUserSocket(socket.user.id);
+  }
+
+  @OnEvent(Events.OnJobDone)
+  handleJobDone(payload: JobPayload) {
+    console.log('Job done event listener');
+    const { job, user } = payload;
+
+    const userSocket = this.sessionManager.getUserSocket(user.id);
+    if (userSocket)
+      userSocket.emit('onJobDone', {
+        job: instanceToPlain(job),
+      });
   }
 }

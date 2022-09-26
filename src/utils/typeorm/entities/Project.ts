@@ -1,12 +1,5 @@
 import { AvailableLanguages } from 'src/utils/enums';
-import {
-  Column,
-  Entity,
-  ManyToOne,
-  OneToMany,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
-import { Job } from './Job';
+import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { User } from './User';
 
 @Entity({ name: 'projects' })

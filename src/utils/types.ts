@@ -1,6 +1,6 @@
-import { Request } from 'express';
+import e, { Request } from 'express';
 import { AvailableExtensions, AvailableLanguages } from './enums';
-import { User } from './typeorm/entities';
+import { Job, User } from './typeorm/entities';
 import { Socket } from 'socket.io';
 
 export type ValidateUserParams = {
@@ -63,3 +63,13 @@ export type DeleteProjectParams = {
 };
 
 export type GetProjectByIdParams = DeleteProjectParams;
+
+export type JobPayload = {
+  job: Job;
+  user: User;
+};
+
+export type RunnerOutput = {
+  error: string;
+  output: string;
+};

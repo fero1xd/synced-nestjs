@@ -33,6 +33,6 @@ export class Job {
   @Column({ nullable: true })
   output: string;
 
-  @ManyToOne(() => Project)
+  @ManyToOne(() => Project, { onDelete: 'CASCADE' })
   project: Project;
 }

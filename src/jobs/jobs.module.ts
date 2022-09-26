@@ -8,6 +8,7 @@ import { FileManagerModule } from 'src/file-manager/file-manager.module';
 import { ProjectsModule } from 'src/projects/project.module';
 import { BullModule } from '@nestjs/bull';
 import { JobsConsumer } from './jobs.consumer';
+import { PythonRunner } from './runners/python.runner';
 
 @Module({
   imports: [
@@ -23,6 +24,10 @@ import { JobsConsumer } from './jobs.consumer';
     {
       provide: Services.JOBS_SERVICE,
       useClass: JobsService,
+    },
+    {
+      provide: Services.PYTHON_RUNNER,
+      useClass: PythonRunner,
     },
     JobsConsumer,
   ],
