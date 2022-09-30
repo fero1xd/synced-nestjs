@@ -5,7 +5,7 @@ import { exec } from 'child_process';
 export class PythonRunner {
   async run(path: string) {
     return await new Promise((res, rej) => {
-      exec(`python ${path}`, (err, stdout, stderr) => {
+      exec(`python ${path}`, { timeout: 5000 }, (err, stdout, stderr) => {
         err && rej({ error: stderr });
         stderr && rej({ error: stderr });
 
