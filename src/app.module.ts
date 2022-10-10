@@ -13,14 +13,15 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
 @Module({
   imports: [
     EventEmitterModule.forRoot(),
-    BullModule.forRoot({
-      redis: {
-        host: 'localhost',
-        port: 6379,
-      },
-    }),
     ConfigModule.forRoot({
       isGlobal: true,
+    }),
+    BullModule.forRoot({
+      redis: {
+        host: process.env.REDIS_HOST,
+        port: 6379,
+        password: process.env.REDIS_PASSWORD,
+      },
     }),
     TypeOrmModule.forRoot({
       type: 'mysql',

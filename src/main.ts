@@ -15,7 +15,7 @@ async function bootstrap() {
   app.setGlobalPrefix('/api');
   app.useWebSocketAdapter(new WebsocketAdapter(app));
 
-  const { COOKIE_SECRET } = process.env;
+  const { COOKIE_SECRET, MY_SQL_HOST, MY_SQL_PASSWORD } = process.env;
 
   const sessionRepository = getRepository(Session);
 
@@ -34,6 +34,10 @@ async function bootstrap() {
 
   app.use(passport.initialize());
   app.use(passport.session());
+
+  console.log('Hello World');
+  console.log(MY_SQL_HOST);
+  console.log(MY_SQL_PASSWORD);
 
   await app.listen(3000);
 }

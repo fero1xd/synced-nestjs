@@ -1,0 +1,63 @@
+version: '3.8'
+
+services:
+  mysqldb:
+    container_name: compiler-db
+    image: mysql:8.0
+    restart: unless-stopped
+    env_file: ./.env
+    environment:
+      - MYSQL_ROOT_PASSWORD=$MY_SQL_PASSWORD
+      - MYSQL_DATABASE=$MY_SQL_DB_NAME
+    volumes:
+      - db:/var/lib/mysql
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - 3306:3306
+    depends_on:
+      - redis
+    networks:
+      - core_service_network
+
+  redis:
+    container_name: compiler-redis
+    restart: unless-stopped
+    image: bitnami/redis:latest
+
+    env_file: ./.env
+
+    ports:
+      - 6379:6379
+
+    networks:
+      - core_service_network
+
+    volumes:
+      - cache:/data
+
+  api:
+    container_name: compiler-api
+    restart: unless-stopped
+    build: ./
+
+    ports:
+      - 3000:3000
+
+    env_file: ./.env
+
+    depends_on:
+      - mysqldb
+
+    networks:
+      - core_service_network
+
+networks:
+  core_service_network:
+    driver: bridge
+    name: core_service_network
+
+volumes:
+  db:
+    driver: local
+  cache:
+    driver: local
