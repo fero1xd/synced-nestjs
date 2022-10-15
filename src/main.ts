@@ -10,12 +10,16 @@ import { TypeormStore } from 'typeorm-store';
 import { WebsocketAdapter } from './gateway/gateway.adapter';
 
 async function bootstrap() {
+  const { COOKIE_SECRET, DEV_SERVER } = process.env;
+
   const app = await NestFactory.create(AppModule);
+  app.enableCors({
+    origin: [DEV_SERVER],
+    credentials: true,
+  });
   app.useGlobalPipes(new ValidationPipe());
   app.setGlobalPrefix('/api');
   app.useWebSocketAdapter(new WebsocketAdapter(app));
-
-  const { COOKIE_SECRET, MY_SQL_HOST, MY_SQL_PASSWORD } = process.env;
 
   const sessionRepository = getRepository(Session);
 
@@ -24,7 +28,7 @@ async function bootstrap() {
       secret: COOKIE_SECRET,
       saveUninitialized: false,
       resave: false,
-      name: 'COMPILER_APP_SESSION_ID',
+      name: 'SYNCED_APP_SESSION_ID',
       cookie: {
         maxAge: 86400000,
       },
@@ -35,10 +39,6 @@ async function bootstrap() {
   app.use(passport.initialize());
   app.use(passport.session());
 
-  console.log('Hello World');
-  console.log(MY_SQL_HOST);
-  console.log(MY_SQL_PASSWORD);
-
-  await app.listen(3000);
+  await app.listen(3001);
 }
 bootstrap();

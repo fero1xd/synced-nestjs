@@ -16,13 +16,13 @@ export class WebsocketAdapter extends IoAdapter {
         console.log('Client has no cookies');
         return next(new Error('Not Authenticated. No cookies were sent'));
       }
-      const { COMPILER_APP_SESSION_ID } = cookie.parse(clientCookie);
-      if (!COMPILER_APP_SESSION_ID) {
-        console.log('COMPILER_APP_SESSION_ID DOES NOT EXIST');
+      const { SYNCED_APP_SESSION_ID } = cookie.parse(clientCookie);
+      if (!SYNCED_APP_SESSION_ID) {
+        console.log('SYNCED_APP_SESSION_ID DOES NOT EXIST');
         return next(new Error('Not Authenticated'));
       }
       const signedCookie = cookieParser.signedCookie(
-        COMPILER_APP_SESSION_ID,
+        SYNCED_APP_SESSION_ID,
         process.env.COOKIE_SECRET,
       );
       if (!signedCookie) return next(new Error('Error signing cookie'));
