@@ -9,7 +9,7 @@ import {
   Param,
   Delete,
 } from '@nestjs/common';
-import { instanceToPlain } from 'class-transformer';
+import { instanceToPlain, plainToClass } from 'class-transformer';
 import { AuthenticatedGuard } from 'src/auth/utils/Guards';
 import { Routes, Services } from 'src/utils/constants';
 import { AuthUser } from 'src/utils/decorators';
@@ -33,9 +33,7 @@ export class ProjectsController {
 
   @Get(':id')
   async getProjectById(@AuthUser() user: User, @Param('id') id: string) {
-    return instanceToPlain(
-      await this.projectsService.getProjectById({ id, user }),
-    );
+    return await this.projectsService.getProjectById({ id, user });
   }
 
   @Post()
@@ -45,11 +43,13 @@ export class ProjectsController {
     );
   }
 
-  @Patch()
-  async updateProject(@AuthUser() user: User, @Body() data: UpdateProject) {
-    return instanceToPlain(
-      await this.projectsService.saveProject({ ...data, user }),
-    );
+  @Patch(':id')
+  async updateProject(
+    @AuthUser() user: User,
+    @Body() data: UpdateProject,
+    @Param('id') id: string,
+  ) {
+    return await this.projectsService.saveProject({ user, id, ...data });
   }
 
   @Delete(':id')

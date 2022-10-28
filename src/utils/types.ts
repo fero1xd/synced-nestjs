@@ -45,7 +45,8 @@ export interface AuthenticatedSocket extends Socket {
 export type CreateProjectParams = {
   name: string;
   language: AvailableLanguages;
-  code: string;
+  code?: string;
+  description?: string;
   user: User;
 };
 
@@ -54,6 +55,7 @@ export type SaveProjectParams = {
   name?: string;
   language?: AvailableLanguages;
   code?: string;
+  description?: string;
   user: User;
 };
 

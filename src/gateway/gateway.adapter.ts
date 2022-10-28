@@ -9,7 +9,7 @@ import { plainToInstance } from 'class-transformer';
 export class WebsocketAdapter extends IoAdapter {
   createIOServer(port: number, options?: any) {
     const sessionRepository = getRepository(Session);
-    const server = super.createIOServer(port, options);
+    const server = super.createIOServer(port, { ...options });
     server.use(async (socket: AuthenticatedSocket, next) => {
       const { cookie: clientCookie } = socket.handshake.headers;
       if (!clientCookie) {

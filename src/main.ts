@@ -10,11 +10,11 @@ import { TypeormStore } from 'typeorm-store';
 import { WebsocketAdapter } from './gateway/gateway.adapter';
 
 async function bootstrap() {
-  const { COOKIE_SECRET, DEV_SERVER } = process.env;
+  const { COOKIE_SECRET } = process.env;
 
   const app = await NestFactory.create(AppModule);
   app.enableCors({
-    origin: [DEV_SERVER],
+    origin: ['http://localhost:3000'],
     credentials: true,
   });
   app.useGlobalPipes(new ValidationPipe());

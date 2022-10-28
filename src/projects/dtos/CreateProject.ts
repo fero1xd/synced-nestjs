@@ -1,14 +1,17 @@
-import { IsEnum, IsNotEmpty, MaxLength } from 'class-validator';
+import { IsEnum, IsNotEmpty, IsOptional, MaxLength } from 'class-validator';
 import { AvailableLanguages } from 'src/utils/enums';
 
 export class CreateProject {
   @IsNotEmpty()
-  @MaxLength(20)
+  @MaxLength(50)
   name: string;
 
   @IsEnum(AvailableLanguages)
   language: AvailableLanguages;
 
-  @IsNotEmpty()
-  code: string;
+  @IsOptional()
+  code?: string;
+
+  @IsOptional()
+  description: string;
 }

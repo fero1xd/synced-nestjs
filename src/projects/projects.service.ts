@@ -36,27 +36,34 @@ export class ProjectsService {
   }
 
   async createProject(params: CreateProjectParams) {
-    const { name, language, code, user } = params;
+    const { name, language, description, code, user } = params;
 
     if (await this.projectExists(name.toLocaleLowerCase(), user))
       throw new BadRequestException(
         'Project with this name is already created for this user',
       );
 
-    return await this.projectRepository.save(
+    const project = await this.projectRepository.save(
       this.projectRepository.create({
         name: name.toLocaleLowerCase(),
         owner: user,
+        description: description || undefined,
         language,
-        code,
+        code: code || '',
       }),
     );
+
+    return {
+      ...project,
+      code: undefined,
+      owner: undefined,
+    };
   }
 
   async saveProject(params: SaveProjectParams) {
-    const { id, name, language, code, user } = params;
+    const { id, name, language, code, user, description } = params;
 
-    if (!name && !language && !code)
+    if (!name && !language && !code && !description)
       throw new BadRequestException('No update done');
 
     const project = await this.projectExists(null, user, id);
@@ -65,7 +72,8 @@ export class ProjectsService {
 
     if (name) project.name = name;
     if (language) project.language = language;
-    if (code) project.code = code;
+    if (code !== undefined || code !== null) project.code = code;
+    if (description) project.description = description;
 
     return await this.projectRepository.save(project);
   }

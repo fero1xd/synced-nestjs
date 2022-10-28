@@ -12,7 +12,13 @@ import { GatewaySessionManager } from './gateway.session';
 import { OnEvent } from '@nestjs/event-emitter';
 import { instanceToPlain } from 'class-transformer';
 
-@WebSocketGateway()
+@WebSocketGateway(3002, {
+  path: '/ws',
+  cors: {
+    origin: ['http://localhost:3000'],
+    credentials: true,
+  },
+})
 export class Gateway implements OnGatewayConnection, OnGatewayDisconnect {
   constructor(
     @Inject(Services.GATEWAY_SESSION_MANAGER_SERVICE)
