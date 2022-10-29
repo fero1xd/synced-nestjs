@@ -20,7 +20,6 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
       redis: {
         host: process.env.REDIS_HOST,
         port: 6379,
-        password: process.env.REDIS_PASSWORD,
       },
     }),
     TypeOrmModule.forRoot({

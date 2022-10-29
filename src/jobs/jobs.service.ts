@@ -36,6 +36,7 @@ export class JobsService {
     const { language, code } = project;
 
     const extension = this.getExtensionByLanguage(language);
+
     const filePath = await this.fileManagerService.generateFile({
       extension,
       code,
@@ -78,7 +79,10 @@ export class JobsService {
   }
 
   getExtensionByLanguage(language: AvailableLanguages) {
-    if (language === AvailableLanguages.PYTHON)
+    if (language === AvailableLanguages.PYTHON) {
       return AvailableExtensions.PYTHON;
+    } else if (language === AvailableLanguages.JAVASCRIPT) {
+      return AvailableExtensions.JAVASCRIPT;
+    }
   }
 }

@@ -30,9 +30,10 @@ export class Job {
   @Column({ type: 'enum', enum: JobStatus, default: JobStatus.PENDING })
   status: JobStatus;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, type: 'longtext' })
   output: string;
 
   @ManyToOne(() => Project, { onDelete: 'CASCADE' })
+  @Exclude()
   project: Project;
 }

@@ -27,6 +27,14 @@ export class JobsController {
     return instanceToPlain(await this.jobsService.createJob({ user, ...data }));
   }
 
+  @Get(':id/latest')
+  async getLatestJob(@AuthUser() user: User, @Param('id') id: string) {
+    const jobs = await this.jobsService.getAllJobs({ id, user });
+    if (jobs.length === 0) return null;
+
+    return instanceToPlain(jobs[jobs.length - 1]);
+  }
+
   @Get(':id')
   async getAllJobs(@AuthUser() user: User, @Param('id') id: string) {
     return instanceToPlain(await this.jobsService.getAllJobs({ id, user }));

@@ -44,9 +44,7 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect {
     const { job, user } = payload;
 
     const userSocket = this.sessionManager.getUserSocket(user.id);
-    if (userSocket)
-      userSocket.emit('onJobDone', {
-        job: instanceToPlain(job),
-      });
+
+    if (userSocket) userSocket.emit('onJobDone', instanceToPlain(job));
   }
 }

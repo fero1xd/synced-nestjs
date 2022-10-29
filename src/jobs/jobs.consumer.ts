@@ -8,7 +8,7 @@ import { Job as JobRepository } from 'src/utils/typeorm/entities';
 import { Repository } from 'typeorm';
 import { JobStatus } from 'src/utils/enums';
 import { Inject } from '@nestjs/common';
-import { PythonRunner } from './runners/python.runner';
+import { Runner } from './runners/runner';
 
 @Processor(Queues.JOBS)
 export class JobsConsumer {
@@ -16,8 +16,8 @@ export class JobsConsumer {
     private eventEmitter: EventEmitter2,
     @InjectRepository(JobRepository)
     private readonly jobRepository: Repository<JobRepository>,
-    @Inject(Services.PYTHON_RUNNER)
-    private readonly pythonRunner: PythonRunner,
+    @Inject(Services.RUNNER)
+    private readonly runner: Runner,
   ) {}
 
   @Process('process')
@@ -26,10 +26,12 @@ export class JobsConsumer {
     const newJob = { ...createdJob };
 
     newJob.startedAt = new Date();
+    console.log('i am here');
 
     try {
-      const { output } = (await this.pythonRunner.run(
+      const { output } = (await this.runner.run(
         newJob.filePath,
+        newJob.project.language,
       )) as RunnerOutput;
 
       newJob.compiledAt = new Date();
@@ -37,13 +39,18 @@ export class JobsConsumer {
       newJob.status = JobStatus.SUCCESS;
     } catch (e) {
       const { error } = e;
+
       newJob.compiledAt = new Date();
-      newJob.output = error;
+
+      newJob.output = error || 'Unexepected Error';
       newJob.status = JobStatus.ERROR;
     }
 
     await this.jobRepository.save(newJob);
 
-    this.eventEmitter.emit(Events.OnJobDone, { job: newJob, user });
+    this.eventEmitter.emit(Events.OnJobDone, {
+      job: { ...newJob, project: undefined, filePath: undefined },
+      user,
+    });
   }
 }
