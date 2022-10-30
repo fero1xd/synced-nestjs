@@ -3,7 +3,7 @@ import { AvailableLanguages } from 'src/utils/enums';
 
 export class CreateProject {
   @IsNotEmpty()
-  @MaxLength(50)
+  @MaxLength(12)
   name: string;
 
   @IsEnum(AvailableLanguages)

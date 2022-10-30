@@ -23,6 +23,9 @@ export class ProjectsService {
   async getAllProjects(user: User) {
     return await this.projectRepository.find({
       where: { owner: { id: user.id } },
+      order: {
+        updatedAt: 'DESC',
+      },
     });
   }
 
@@ -38,14 +41,14 @@ export class ProjectsService {
   async createProject(params: CreateProjectParams) {
     const { name, language, description, code, user } = params;
 
-    if (await this.projectExists(name.toLocaleLowerCase(), user))
+    if (await this.projectExists(name.toLowerCase(), user))
       throw new BadRequestException(
         'Project with this name is already created for this user',
       );
 
     const project = await this.projectRepository.save(
       this.projectRepository.create({
-        name: name.toLocaleLowerCase(),
+        name,
         owner: user,
         description: description || undefined,
         language,
@@ -67,10 +70,17 @@ export class ProjectsService {
       throw new BadRequestException('No update done');
 
     const project = await this.projectExists(null, user, id);
-
     if (!project) throw new NotFoundException('Project not found');
 
-    if (name) project.name = name;
+    if (name) {
+      const exist = await this.projectExists(name.toLowerCase(), user);
+      if (exist && exist.id !== project.id) {
+        throw new BadRequestException(
+          'Project with this name is already created for this user',
+        );
+      }
+      project.name = name;
+    }
     if (language) project.language = language;
     if (code !== undefined || code !== null) project.code = code;
     if (description) project.description = description;
@@ -93,8 +103,10 @@ export class ProjectsService {
       ? await this.projectRepository.findOne({
           where: { id, owner: { id: user.id } },
         })
-      : await this.projectRepository.findOne({
-          where: { name, owner: { id: user.id } },
-        });
+      : await this.projectRepository
+          .createQueryBuilder('project')
+          .where('LOWER(project.name) = LOWER(:name)', { name })
+          .andWhere('project.owner.id = :id', { id: user.id })
+          .getOne();
   }
 }

@@ -28,7 +28,7 @@ export class ProjectsController {
 
   @Get()
   async getAllProjects(@AuthUser() user: User) {
-    return instanceToPlain(await this.projectsService.getAllProjects(user));
+    return await this.projectsService.getAllProjects(user);
   }
 
   @Get(':id')

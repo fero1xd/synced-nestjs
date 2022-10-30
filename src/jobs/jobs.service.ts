@@ -83,6 +83,8 @@ export class JobsService {
       return AvailableExtensions.PYTHON;
     } else if (language === AvailableLanguages.JAVASCRIPT) {
       return AvailableExtensions.JAVASCRIPT;
+    } else if (language === AvailableLanguages.JAVA) {
+      return AvailableExtensions.JAVA;
     }
   }
 }

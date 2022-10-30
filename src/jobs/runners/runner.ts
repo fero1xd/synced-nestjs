@@ -11,8 +11,10 @@ export class Runner {
         cmd = `node ${path}`;
       } else if (language === AvailableLanguages.PYTHON) {
         cmd = `python ${path}`;
+      } else if (language === AvailableLanguages.JAVA) {
+        cmd = `java ${path}`;
       }
-      exec(cmd, { timeout: 5000 }, (err, stdout, stderr) => {
+      exec(cmd, { timeout: 10000 }, (err, stdout, stderr) => {
         err && rej({ error: stderr });
         stderr && rej({ error: stderr });
 

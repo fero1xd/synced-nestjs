@@ -1,6 +1,13 @@
 import { Exclude } from 'class-transformer';
 import { AvailableLanguages } from 'src/utils/enums';
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 import { User } from './User';
 
 @Entity({ name: 'projects' })
@@ -28,4 +35,10 @@ export class Project {
   @ManyToOne(() => User)
   @Exclude()
   owner: User;
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
 }
