@@ -62,6 +62,9 @@ export class JobsService {
 
     return await this.jobRepository.find({
       where: { project: { id, owner: { id: user.id } } },
+      order: {
+        submittedAt: 'DESC',
+      },
     });
   }
 
@@ -79,12 +82,6 @@ export class JobsService {
   }
 
   getExtensionByLanguage(language: AvailableLanguages) {
-    if (language === AvailableLanguages.PYTHON) {
-      return AvailableExtensions.PYTHON;
-    } else if (language === AvailableLanguages.JAVASCRIPT) {
-      return AvailableExtensions.JAVASCRIPT;
-    } else if (language === AvailableLanguages.JAVA) {
-      return AvailableExtensions.JAVA;
-    }
+    return AvailableExtensions[language.toUpperCase()];
   }
 }

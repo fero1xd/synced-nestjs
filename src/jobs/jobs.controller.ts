@@ -32,7 +32,7 @@ export class JobsController {
     const jobs = await this.jobsService.getAllJobs({ id, user });
     if (jobs.length === 0) return null;
 
-    return instanceToPlain(jobs[jobs.length - 1]);
+    return instanceToPlain(jobs[0]);
   }
 
   @Get(':id')

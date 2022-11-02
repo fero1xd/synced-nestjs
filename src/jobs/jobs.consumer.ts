@@ -26,7 +26,6 @@ export class JobsConsumer {
     const newJob = { ...createdJob };
 
     newJob.startedAt = new Date();
-    console.log('i am here');
 
     try {
       const { output } = (await this.runner.run(
