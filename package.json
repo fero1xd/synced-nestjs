@@ -47,7 +47,8 @@
     "rxjs": "7.5.5",
     "typeorm": "0.2.37",
     "typeorm-store": "^2.0.1",
-    "uuid": "^9.0.0"
+    "uuid": "^9.0.0",
+    "wandbox-api-updated": "^1.0.4"
   },
   "devDependencies": {
     "@nestjs/cli": "9.0.0",
