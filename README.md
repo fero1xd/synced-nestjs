@@ -2,7 +2,7 @@
 
 **(In Development)** Synced is an online coding platform where you can create different projects, collab with other developers
 
-This repository is the Frontend made with ReactJs.
+This repository is the Backend made with NestJs.
 ## Features
 
 - Light/dark mode toggle
