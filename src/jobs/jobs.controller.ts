@@ -6,6 +6,7 @@ import {
   Param,
   Post,
   Body,
+  Delete,
 } from '@nestjs/common';
 import { AuthenticatedGuard } from 'src/auth/utils/Guards';
 import { Routes, Services } from 'src/utils/constants';
@@ -14,6 +15,7 @@ import { User } from 'src/utils/typeorm/entities';
 import { CreateJob } from './dtos/CreateJob';
 import { JobsService } from './jobs.service';
 import { instanceToPlain } from 'class-transformer';
+import { DeleteJobs } from './dtos/DeleteJobs';
 
 @Controller(Routes.JOBS)
 @UseGuards(AuthenticatedGuard)
@@ -35,6 +37,11 @@ export class JobsController {
   @Get(':id/single')
   async getJobById(@AuthUser() user: User, @Param('id') id: string) {
     return instanceToPlain(await this.jobsService.getJobById({ id, user }));
+  }
+
+  @Delete('/:id/clear')
+  async clearJobs(@AuthUser() user: User, @Param('id') id: string) {
+    await this.jobsService.clearJobs({ projectId: id, user });
   }
 
   @Get(':id/status')

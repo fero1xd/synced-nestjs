@@ -1,5 +1,10 @@
-import { Injectable, Inject, NotFoundException } from '@nestjs/common';
-import { Job } from 'src/utils/typeorm/entities';
+import {
+  Injectable,
+  Inject,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
+import { Job, User } from 'src/utils/typeorm/entities';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import {
@@ -7,12 +12,17 @@ import {
   GetAllJobsParams,
   GetJobByIdParams,
 } from 'src/utils/types';
-import { Queues, Services } from 'src/utils/constants';
+import { Events, Queues, Services } from 'src/utils/constants';
 import { FileManagerService } from 'src/file-manager/file-manager.service';
-import { AvailableExtensions, AvailableLanguages } from 'src/utils/enums';
+import {
+  AvailableExtensions,
+  AvailableLanguages,
+  JobStatus,
+} from 'src/utils/enums';
 import { ProjectsService } from 'src/projects/projects.service';
 import { InjectQueue } from '@nestjs/bull';
 import { Queue } from 'bull';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class JobsService {
@@ -23,6 +33,7 @@ export class JobsService {
     @Inject(Services.FILE_MANAGER_SERVICE)
     private readonly fileManagerService: FileManagerService,
     @InjectQueue(Queues.JOBS) private readonly jobsQueue: Queue,
+    private eventEmitter: EventEmitter2,
   ) {}
 
   async createJob(params: CreateJobParams) {
@@ -44,15 +55,19 @@ export class JobsService {
 
     const job = await this.jobRepository.save(
       this.jobRepository.create({
-        filePath,
         project,
       }),
     );
 
-    await this.jobsQueue.add('process', {
+    this.jobsQueue.add('process', {
       job,
+      filePath,
       user,
     });
+
+    if (project.isPublic) {
+      this.eventEmitter.emit(Events.OnJobCreate, job);
+    }
 
     return job;
   }
@@ -79,6 +94,32 @@ export class JobsService {
     if (!job) throw new NotFoundException('Job not found');
 
     return { ...job };
+  }
+
+  async clearJobs({ projectId, user }: { projectId: string; user: User }) {
+    const project = await this.projectsService.projectExists(
+      null,
+      user,
+      projectId,
+    );
+    if (!project) throw new NotFoundException('Project not found');
+    if (project.owner.id !== user.id) throw new UnauthorizedException();
+
+    const jobs = await this.jobRepository
+      .createQueryBuilder('job')
+      .leftJoinAndSelect('job.project', 'project')
+      .leftJoinAndSelect('project.owner', 'owner')
+      .where(
+        'project.id = :id AND owner.id = :userId AND job.status != :status',
+        {
+          id: projectId,
+          userId: user.id,
+          status: JobStatus.PENDING,
+        },
+      )
+      .getMany();
+
+    await this.jobRepository.remove(jobs);
   }
 
   getExtensionByLanguage(language: AvailableLanguages) {

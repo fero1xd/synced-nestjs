@@ -4,6 +4,8 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinTable,
+  ManyToMany,
   ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
@@ -18,6 +20,9 @@ export class Project {
   @Column()
   name: string;
 
+  @Column({ default: false })
+  isPublic: boolean;
+
   @Column({
     type: 'enum',
     enum: AvailableLanguages,
@@ -31,6 +36,12 @@ export class Project {
 
   @Column({ nullable: true })
   description?: string;
+
+  @ManyToMany(() => User, {
+    cascade: ['insert', 'remove'],
+  })
+  @JoinTable()
+  collaborators: User[];
 
   @ManyToOne(() => User)
   @Exclude()

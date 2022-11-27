@@ -8,13 +8,13 @@ import { FileManagerModule } from 'src/file-manager/file-manager.module';
 import { ProjectsModule } from 'src/projects/project.module';
 import { BullModule } from '@nestjs/bull';
 import { JobsConsumer } from './jobs.consumer';
-import { Runner } from './runners/runner';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([User, Job]),
     FileManagerModule,
     ProjectsModule,
+
     BullModule.registerQueue({
       name: Queues.JOBS,
     }),
@@ -24,10 +24,6 @@ import { Runner } from './runners/runner';
     {
       provide: Services.JOBS_SERVICE,
       useClass: JobsService,
-    },
-    {
-      provide: Services.RUNNER,
-      useClass: Runner,
     },
     JobsConsumer,
   ],

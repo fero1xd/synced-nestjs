@@ -2,8 +2,12 @@ import {
   Injectable,
   BadRequestException,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { InjectRepository } from '@nestjs/typeorm';
+import { BoilerPlate } from 'src/utils/boilerplate';
+import { Events } from 'src/utils/constants';
 import { Project, User } from 'src/utils/typeorm/entities';
 import {
   CreateProjectParams,
@@ -18,33 +22,61 @@ export class ProjectsService {
   constructor(
     @InjectRepository(Project)
     private readonly projectRepository: Repository<Project>,
+    private eventEmitter: EventEmitter2,
   ) {}
 
-  async getAllProjects(user: User) {
-    return await this.projectRepository.find({
-      where: { owner: { id: user.id } },
-      order: {
-        updatedAt: 'DESC',
-      },
-    });
+  async getAllProjects(user: User, isPublic: boolean) {
+    return isPublic
+      ? await this.projectRepository
+          .createQueryBuilder('project')
+          .leftJoinAndSelect('project.owner', 'owner')
+          .leftJoinAndSelect('project.collaborators', 'collaborator')
+          .where(
+            'isPublic = true AND (collaborator.id IN (:users) OR owner.id = :ownerId)',
+            {
+              users: [user.id],
+              ownerId: user.id,
+            },
+          )
+          .leftJoinAndSelect('project.collaborators', 'collaborators')
+          .orderBy('project.updatedAt', 'DESC')
+          .getMany()
+      : await this.projectRepository
+          .createQueryBuilder('project')
+          .leftJoinAndSelect('project.owner', 'owner')
+          .where('owner.id = :ownerId', { ownerId: user.id })
+          .andWhere('isPublic = false')
+          .leftJoinAndSelect('project.collaborators', 'collaborators')
+          .orderBy('project.updatedAt', 'DESC')
+          .getMany();
   }
 
   async getProjectById(params: GetProjectByIdParams) {
     const { id, user } = params;
 
     const project = await this.projectExists(null, user, id);
+
     if (!project) throw new NotFoundException('Project not found');
+
+    project.owner.password = undefined;
+    project.collaborators = project.collaborators.map((c) => ({
+      ...c,
+      password: undefined,
+    }));
 
     return project;
   }
 
   async createProject(params: CreateProjectParams) {
-    const { name, language, description, code, user } = params;
+    const { name, language, description, code, user, isPublic } = params;
 
-    if (await this.projectExists(name.toLowerCase(), user))
+    const pr = await this.projectExists(name.toLowerCase(), user);
+
+    if (pr) {
       throw new BadRequestException(
         'Project with this name is already created for this user',
       );
+    }
 
     const project = await this.projectRepository.save(
       this.projectRepository.create({
@@ -52,7 +84,9 @@ export class ProjectsService {
         owner: user,
         description: description || undefined,
         language,
-        code: code || '',
+        code: code || BoilerPlate[language.toUpperCase()] || '',
+        isPublic: isPublic || false,
+        collaborators: [user],
       }),
     );
 
@@ -64,12 +98,19 @@ export class ProjectsService {
   }
 
   async saveProject(params: SaveProjectParams) {
-    const { id, name, language, code, user, description } = params;
+    const { id, name, language, code, user, description, isPublic } = params;
 
-    if (!name && !language && !code && !description)
+    if (
+      !name &&
+      !language &&
+      !code &&
+      !description &&
+      typeof isPublic !== 'boolean'
+    )
       throw new BadRequestException('No update done');
 
     const project = await this.projectExists(null, user, id);
+
     if (!project) throw new NotFoundException('Project not found');
 
     if (name) {
@@ -85,7 +126,21 @@ export class ProjectsService {
     if (code !== undefined || code !== null) project.code = code;
     if (description) project.description = description;
 
-    return await this.projectRepository.save(project);
+    if (typeof isPublic === 'boolean') {
+      project.isPublic = isPublic;
+    }
+
+    if (project.isPublic) {
+      this.eventEmitter.emit(Events.OnProjectUpdate, {
+        ...project,
+        owner: undefined,
+      });
+    }
+
+    return {
+      ...(await this.projectRepository.save(project)),
+      owner: undefined,
+    };
   }
 
   async deleteProject(params: DeleteProjectParams) {
@@ -94,19 +149,40 @@ export class ProjectsService {
     const project = await this.projectExists(null, user, id);
 
     if (!project) throw new NotFoundException('Project not found');
+    if (project.owner.id !== user.id) throw new UnauthorizedException();
 
     await this.projectRepository.remove(project);
   }
 
-  private async projectExists(name: string, user: User, id?: string) {
+  async projectExists(name: string, user: User, id?: string) {
     return id
-      ? await this.projectRepository.findOne({
-          where: { id, owner: { id: user.id } },
-        })
+      ? await this.projectRepository
+          .createQueryBuilder('project')
+          .leftJoinAndSelect('project.owner', 'owner')
+          .leftJoinAndSelect('project.collaborators', 'collaborator')
+          .where(
+            'project.id = :projectId AND (owner.id = :ownerId OR (isPublic = true AND collaborator.id IN (:users)))',
+            {
+              projectId: id,
+              ownerId: user.id,
+              users: [user.id],
+            },
+          )
+          .leftJoinAndSelect('project.collaborators', 'collaborators')
+          .getOne()
       : await this.projectRepository
           .createQueryBuilder('project')
-          .where('LOWER(project.name) = LOWER(:name)', { name })
-          .andWhere('project.owner.id = :id', { id: user.id })
+          .leftJoinAndSelect('project.owner', 'owner')
+          .leftJoinAndSelect('project.collaborators', 'collaborator')
+          .where(
+            'LOWER(project.name) = LOWER(:name) AND (owner.id = :ownerId OR (isPublic = true AND collaborator.id IN (:users)))',
+            {
+              name,
+              ownerId: user.id,
+              users: [user.id],
+            },
+          )
+          .leftJoinAndSelect('project.collaborators', 'collaborators')
           .getOne();
   }
 }

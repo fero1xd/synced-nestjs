@@ -46,6 +46,7 @@ export type CreateProjectParams = {
   name: string;
   language: AvailableLanguages;
   code?: string;
+  isPublic?: boolean;
   description?: string;
   user: User;
 };
@@ -56,6 +57,8 @@ export type SaveProjectParams = {
   language?: AvailableLanguages;
   code?: string;
   description?: string;
+  isPublic?: boolean;
+
   user: User;
 };
 
@@ -68,6 +71,7 @@ export type GetProjectByIdParams = DeleteProjectParams;
 
 export type JobPayload = {
   job: Job;
+  filePath: string;
   user: User;
 };
 

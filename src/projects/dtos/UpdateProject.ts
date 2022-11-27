@@ -1,4 +1,4 @@
-import { IsEnum, IsOptional } from 'class-validator';
+import { IsBoolean, IsEnum, IsOptional } from 'class-validator';
 import { AvailableLanguages } from 'src/utils/enums';
 
 export class UpdateProject {
@@ -11,6 +11,10 @@ export class UpdateProject {
 
   @IsOptional()
   description: string;
+
+  @IsOptional()
+  @IsBoolean()
+  isPublic?: boolean;
 
   @IsOptional()
   code: string;

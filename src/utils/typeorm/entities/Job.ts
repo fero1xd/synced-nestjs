@@ -14,10 +14,6 @@ export class Job {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
-  @Exclude()
-  filePath: string;
-
   @CreateDateColumn()
   submittedAt: Date;
 

@@ -1,7 +1,10 @@
 import { Inject } from '@nestjs/common';
 import {
+  ConnectedSocket,
+  MessageBody,
   OnGatewayConnection,
   OnGatewayDisconnect,
+  SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets';
@@ -11,11 +14,12 @@ import { AuthenticatedSocket, JobPayload } from 'src/utils/types';
 import { GatewaySessionManager } from './gateway.session';
 import { OnEvent } from '@nestjs/event-emitter';
 import { instanceToPlain } from 'class-transformer';
+import { Job, Project } from 'src/utils/typeorm/entities';
 
 @WebSocketGateway(3002, {
   path: '/ws',
   cors: {
-    origin: ['http://localhost:3000'],
+    origin: ['http://localhost:3000', process.env.LOCAL_WEB],
     credentials: true,
   },
 })
@@ -28,7 +32,7 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   server: Server;
 
-  handleConnection(socket: AuthenticatedSocket, ...args: any[]) {
+  handleConnection(socket: AuthenticatedSocket) {
     console.log(`Incomming connection from ${socket.user.name}`);
     this.sessionManager.setUserSocket(socket.user.id, socket);
   }
@@ -38,13 +42,54 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.sessionManager.removeUserSocket(socket.user.id);
   }
 
+  @SubscribeMessage('onProjectJoin')
+  onProjectJoin(
+    @MessageBody() data: any,
+    @ConnectedSocket() client: AuthenticatedSocket,
+  ) {
+    console.log('onProjectJoin');
+    client.join(`project-${data.projectId}`);
+    console.log(client.rooms);
+  }
+
+  @SubscribeMessage('onProjectLeave')
+  onProjectLeave(
+    @MessageBody() data: any,
+    @ConnectedSocket() client: AuthenticatedSocket,
+  ) {
+    console.log('onProjectLeave');
+    client.leave(`project-${data.projectId}`);
+    console.log(client.rooms);
+  }
+
   @OnEvent(Events.OnJobDone)
   handleJobDone(payload: JobPayload) {
-    console.log('Job done event listener');
     const { job, user } = payload;
 
-    const userSocket = this.sessionManager.getUserSocket(user.id);
+    if (job.project.isPublic) {
+      const projectId = job.project.id;
 
-    if (userSocket) userSocket.emit('onJobDone', instanceToPlain(job));
+      return this.server
+        .to(`project-${projectId}`)
+        .emit('onJobDone', { ...job, project: undefined });
+    }
+
+    const userSocket = this.sessionManager.getUserSocket(user.id);
+    if (userSocket)
+      userSocket.emit('onJobDone', { ...job, project: undefined });
+  }
+
+  @OnEvent(Events.OnJobCreate)
+  handleJobCreate(job: Job) {
+    const projectId = job.project.id;
+    this.server
+      .to(`project-${projectId}`)
+      .emit('onJobCreate', { ...job, project: undefined });
+  }
+
+  @OnEvent(Events.OnProjectUpdate)
+  handleOnProjectUpdate(project: Project) {
+    const projectId = project.id;
+    this.server.to(`project-${projectId}`).emit('onProjectUpdate', project);
   }
 }

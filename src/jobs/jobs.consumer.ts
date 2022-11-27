@@ -1,15 +1,18 @@
 import { Process, Processor } from '@nestjs/bull';
 import { Job } from 'bull';
-import { Events, Queues, Services } from 'src/utils/constants';
+import { Events, Queues } from 'src/utils/constants';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { JobPayload } from 'src/utils/types';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Job as JobRepository } from 'src/utils/typeorm/entities';
 import { Repository } from 'typeorm';
-import { AvailableLanguages, JobStatus } from 'src/utils/enums';
-import { Inject } from '@nestjs/common';
-import { Runner } from './runners/runner';
+import {
+  AvailableCompilers,
+  AvailableLanguages,
+  JobStatus,
+} from 'src/utils/enums';
 import { fromFile } from 'wandbox-api-updated';
+import { unlinkSync } from 'fs';
 
 @Processor(Queues.JOBS)
 export class JobsConsumer {
@@ -17,13 +20,11 @@ export class JobsConsumer {
     private eventEmitter: EventEmitter2,
     @InjectRepository(JobRepository)
     private readonly jobRepository: Repository<JobRepository>,
-    @Inject(Services.RUNNER)
-    private readonly runner: Runner,
   ) {}
 
-  @Process('process')
+  @Process({ name: 'process', concurrency: 100 })
   async handleTranscode(job: Job<unknown>) {
-    const { job: createdJob, user } = <JobPayload>job.data;
+    const { job: createdJob, filePath, user } = <JobPayload>job.data;
     const newJob = { ...createdJob };
 
     newJob.startedAt = new Date();
@@ -31,7 +32,7 @@ export class JobsConsumer {
     const compiler = this.getCompiler(newJob.project.language);
 
     try {
-      const result = await fromFile(newJob.filePath, {
+      const result = await fromFile(filePath, {
         code: '',
         compiler,
         save: false,
@@ -47,6 +48,8 @@ export class JobsConsumer {
         newJob.output = result.compiler_error || result.program_error;
         newJob.status = JobStatus.ERROR;
       }
+
+      unlinkSync(filePath);
     } catch (e) {
       newJob.output = 'Unexpected Error';
       newJob.status = JobStatus.ERROR;
@@ -56,24 +59,12 @@ export class JobsConsumer {
     await this.jobRepository.save(newJob);
 
     this.eventEmitter.emit(Events.OnJobDone, {
-      job: {
-        ...newJob,
-        project: undefined,
-        filePath: undefined,
-        code: undefined,
-      },
+      job: newJob,
       user,
     });
   }
 
-  getCompiler(language: AvailableLanguages) {
-    switch (language) {
-      case AvailableLanguages.PYTHON:
-        return 'cpython-3.10.2';
-      case AvailableLanguages.JAVASCRIPT:
-        return 'nodejs-16.14.0';
-      case AvailableLanguages.JAVA:
-        return 'openjdk-jdk-15.0.3+2';
-    }
+  getCompiler(language: AvailableLanguages): AvailableCompilers {
+    return AvailableCompilers[language.toUpperCase()];
   }
 }

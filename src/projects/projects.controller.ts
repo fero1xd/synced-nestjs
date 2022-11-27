@@ -27,8 +27,17 @@ export class ProjectsController {
   ) {}
 
   @Get()
-  async getAllProjects(@AuthUser() user: User) {
-    return instanceToPlain(await this.projectsService.getAllProjects(user));
+  async getPrivateProjects(@AuthUser() user: User) {
+    return instanceToPlain(
+      await this.projectsService.getAllProjects(user, false),
+    );
+  }
+
+  @Get('/public')
+  async getPublicProjects(@AuthUser() user: User) {
+    return instanceToPlain(
+      await this.projectsService.getAllProjects(user, true),
+    );
   }
 
   @Get(':id')

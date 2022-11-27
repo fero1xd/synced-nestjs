@@ -21,4 +21,6 @@ export enum Queues {
 
 export enum Events {
   OnJobDone = 'onJobDone',
+  OnJobCreate = 'onJobCreate',
+  OnProjectUpdate = 'onProjectUpdate',
 }
