@@ -15,6 +15,7 @@ import { Routes, Services } from 'src/utils/constants';
 import { AuthUser } from 'src/utils/decorators';
 import { User } from 'src/utils/typeorm/entities';
 import { CreateProject } from './dtos/CreateProject';
+import { TransferOwnership } from './dtos/TransferOwnership';
 import { UpdateProject } from './dtos/UpdateProject';
 import { ProjectsService } from './projects.service';
 
@@ -59,6 +60,14 @@ export class ProjectsController {
     @Param('id') id: string,
   ) {
     return await this.projectsService.saveProject({ user, id, ...data });
+  }
+
+  @Patch('/transfer')
+  async transferOwnershop(
+    @AuthUser() user: User,
+    @Body() data: TransferOwnership,
+  ) {
+    return await this.projectsService.transferOwnership({ user, ...data });
   }
 
   @Delete(':id')

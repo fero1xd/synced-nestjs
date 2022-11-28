@@ -44,7 +44,6 @@ export class Project {
   collaborators: User[];
 
   @ManyToOne(() => User)
-  @Exclude()
   owner: User;
 
   @CreateDateColumn()

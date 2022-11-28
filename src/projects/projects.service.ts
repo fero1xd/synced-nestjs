@@ -3,17 +3,20 @@ import {
   BadRequestException,
   NotFoundException,
   UnauthorizedException,
+  Inject,
 } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { InjectRepository } from '@nestjs/typeorm';
+import { UsersService } from 'src/users/users.service';
 import { BoilerPlate } from 'src/utils/boilerplate';
-import { Events } from 'src/utils/constants';
+import { Events, Services } from 'src/utils/constants';
 import { Project, User } from 'src/utils/typeorm/entities';
 import {
   CreateProjectParams,
   DeleteProjectParams,
   GetProjectByIdParams,
   SaveProjectParams,
+  TransferOwnershipParams,
 } from 'src/utils/types';
 import { Repository } from 'typeorm';
 
@@ -23,6 +26,8 @@ export class ProjectsService {
     @InjectRepository(Project)
     private readonly projectRepository: Repository<Project>,
     private eventEmitter: EventEmitter2,
+    @Inject(Services.USERS_SERVICE)
+    private readonly usersService: UsersService,
   ) {}
 
   async getAllProjects(user: User, isPublic: boolean) {
@@ -78,7 +83,7 @@ export class ProjectsService {
       );
     }
 
-    const project = await this.projectRepository.save(
+    return await this.projectRepository.save(
       this.projectRepository.create({
         name,
         owner: user,
@@ -89,12 +94,6 @@ export class ProjectsService {
         collaborators: [user],
       }),
     );
-
-    return {
-      ...project,
-      code: undefined,
-      owner: undefined,
-    };
   }
 
   async saveProject(params: SaveProjectParams) {
@@ -112,6 +111,8 @@ export class ProjectsService {
     const project = await this.projectExists(null, user, id);
 
     if (!project) throw new NotFoundException('Project not found');
+    if ((name || language) && project.owner.id !== user.id)
+      throw new UnauthorizedException();
 
     if (name) {
       const exist = await this.projectExists(name.toLowerCase(), user);
@@ -123,7 +124,8 @@ export class ProjectsService {
       project.name = name;
     }
     if (language) project.language = language;
-    if (code !== undefined || code !== null) project.code = code;
+
+    if (code) project.code = code;
     if (description) project.description = description;
 
     if (typeof isPublic === 'boolean') {
@@ -131,16 +133,35 @@ export class ProjectsService {
     }
 
     if (project.isPublic) {
-      this.eventEmitter.emit(Events.OnProjectUpdate, {
-        ...project,
-        owner: undefined,
-      });
+      this.eventEmitter.emit(Events.OnProjectUpdate, user, project);
     }
 
-    return {
-      ...(await this.projectRepository.save(project)),
-      owner: undefined,
-    };
+    return await this.projectRepository.save(project);
+  }
+
+  async transferOwnership(params: TransferOwnershipParams) {
+    const { user, projectId, userToTransferEmail } = params;
+
+    const project = await this.projectExists(null, user, projectId);
+    if (!project) throw new NotFoundException('Project not found');
+    if (project.owner.id !== user.id)
+      throw new BadRequestException('Unauthorized');
+
+    const userToTransfer = await this.usersService.userExists(
+      userToTransferEmail,
+    );
+    if (!userToTransfer) throw new NotFoundException('User not found');
+
+    const isCollaborator = project.collaborators.some(
+      (c) => c.email === userToTransfer.email,
+    );
+    if (!isCollaborator)
+      throw new BadRequestException(
+        'This user is not a collaborator in this project',
+      );
+
+    project.owner = userToTransfer;
+    return await this.projectRepository.save(project);
   }
 
   async deleteProject(params: DeleteProjectParams) {

@@ -79,3 +79,9 @@ export type RunnerOutput = {
   error: string;
   output: string;
 };
+
+export type TransferOwnershipParams = {
+  projectId: string;
+  user: User;
+  userToTransferEmail: string;
+};

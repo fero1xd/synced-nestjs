@@ -14,7 +14,7 @@ import { AuthenticatedSocket, JobPayload } from 'src/utils/types';
 import { GatewaySessionManager } from './gateway.session';
 import { OnEvent } from '@nestjs/event-emitter';
 import { instanceToPlain } from 'class-transformer';
-import { Job, Project } from 'src/utils/typeorm/entities';
+import { Job, Project, User } from 'src/utils/typeorm/entities';
 
 @WebSocketGateway(3002, {
   path: '/ws',
@@ -62,6 +62,14 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect {
     console.log(client.rooms);
   }
 
+  @SubscribeMessage('onCodeUpdate')
+  handleCodeUpdate(
+    @MessageBody() data: any,
+    @ConnectedSocket() client: AuthenticatedSocket,
+  ) {
+    client.to(`project-${data.projectId}`).emit('onCodeUpdate', data);
+  }
+
   @OnEvent(Events.OnJobDone)
   handleJobDone(payload: JobPayload) {
     const { job, user } = payload;
@@ -88,8 +96,12 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   @OnEvent(Events.OnProjectUpdate)
-  handleOnProjectUpdate(project: Project) {
+  handleOnProjectUpdate(user: User, project: Project) {
     const projectId = project.id;
-    this.server.to(`project-${projectId}`).emit('onProjectUpdate', project);
+
+    const client = this.sessionManager.getUserSocket(user.id);
+
+    client &&
+      client.to(`project-${projectId}`).emit('onProjectUpdate', project);
   }
 }
