@@ -109,7 +109,6 @@ export class ProjectsService {
       throw new BadRequestException('No update done');
 
     const project = await this.projectExists(null, user, id);
-
     if (!project) throw new NotFoundException('Project not found');
     if ((name || language) && project.owner.id !== user.id)
       throw new UnauthorizedException();
@@ -132,11 +131,21 @@ export class ProjectsService {
       project.isPublic = isPublic;
     }
 
+    const dirtyFields: Partial<Project> = {
+      id: project.id,
+      code: code ? project.code : undefined,
+      name: name ? project.name : undefined,
+      language: language ? project.language : undefined,
+      description: description ? project.description : undefined,
+      isPublic: isPublic ? project.isPublic : undefined,
+    };
+
     if (project.isPublic) {
-      this.eventEmitter.emit(Events.OnProjectUpdate, user, project);
+      this.eventEmitter.emit(Events.OnProjectUpdate, user, dirtyFields);
     }
 
-    return await this.projectRepository.save(project);
+    await this.projectRepository.save(project);
+    return dirtyFields;
   }
 
   async transferOwnership(params: TransferOwnershipParams) {
@@ -146,6 +155,8 @@ export class ProjectsService {
     if (!project) throw new NotFoundException('Project not found');
     if (project.owner.id !== user.id)
       throw new BadRequestException('Unauthorized');
+    if (!project.isPublic)
+      throw new BadRequestException('This Project is not public');
 
     const userToTransfer = await this.usersService.userExists(
       userToTransferEmail,
@@ -161,6 +172,12 @@ export class ProjectsService {
       );
 
     project.owner = userToTransfer;
+
+    this.eventEmitter.emit(Events.OnProjectUpdate, user, {
+      id: project.id,
+      owner: project.owner,
+      collaborators: project.collaborators,
+    });
     return await this.projectRepository.save(project);
   }
 

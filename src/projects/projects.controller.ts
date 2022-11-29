@@ -52,6 +52,13 @@ export class ProjectsController {
       await this.projectsService.createProject({ ...data, user }),
     );
   }
+  @Patch('/transfer')
+  async transferOwnershop(
+    @AuthUser() user: User,
+    @Body() data: TransferOwnership,
+  ) {
+    return await this.projectsService.transferOwnership({ user, ...data });
+  }
 
   @Patch(':id')
   async updateProject(
@@ -60,14 +67,6 @@ export class ProjectsController {
     @Param('id') id: string,
   ) {
     return await this.projectsService.saveProject({ user, id, ...data });
-  }
-
-  @Patch('/transfer')
-  async transferOwnershop(
-    @AuthUser() user: User,
-    @Body() data: TransferOwnership,
-  ) {
-    return await this.projectsService.transferOwnership({ user, ...data });
   }
 
   @Delete(':id')

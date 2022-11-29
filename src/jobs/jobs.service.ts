@@ -65,9 +65,7 @@ export class JobsService {
       user,
     });
 
-    if (project.isPublic) {
-      this.eventEmitter.emit(Events.OnJobCreate, job);
-    }
+    if (project.isPublic) this.eventEmitter.emit(Events.OnJobCreate, user, job);
 
     return job;
   }

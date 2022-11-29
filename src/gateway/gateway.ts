@@ -13,7 +13,6 @@ import { Events, Services } from 'src/utils/constants';
 import { AuthenticatedSocket, JobPayload } from 'src/utils/types';
 import { GatewaySessionManager } from './gateway.session';
 import { OnEvent } from '@nestjs/event-emitter';
-import { instanceToPlain } from 'class-transformer';
 import { Job, Project, User } from 'src/utils/typeorm/entities';
 
 @WebSocketGateway(3002, {
@@ -88,11 +87,13 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   @OnEvent(Events.OnJobCreate)
-  handleJobCreate(job: Job) {
+  handleJobCreate(user: User, job: Job) {
     const projectId = job.project.id;
-    this.server
-      .to(`project-${projectId}`)
-      .emit('onJobCreate', { ...job, project: undefined });
+    const client = this.sessionManager.getUserSocket(user.id);
+    client &&
+      client
+        .to(`project-${projectId}`)
+        .emit('onJobCreate', { ...job, project: undefined });
   }
 
   @OnEvent(Events.OnProjectUpdate)
