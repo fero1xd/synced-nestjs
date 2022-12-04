@@ -105,4 +105,16 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect {
     client &&
       client.to(`project-${projectId}`).emit('onProjectUpdate', project);
   }
+
+  @OnEvent(Events.OnCollaboratorRemove)
+  handleOnCollaboratorRemove(user: User, removedUser: User, project: Project) {
+    const client = this.sessionManager.getUserSocket(removedUser.id);
+
+    client &&
+      client.emit('onRemoved', {
+        projectId: project.id,
+      });
+
+    this.handleOnProjectUpdate(user, project);
+  }
 }

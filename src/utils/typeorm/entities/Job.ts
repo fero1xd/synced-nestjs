@@ -6,8 +6,10 @@ import {
   Column,
   CreateDateColumn,
   ManyToOne,
+  JoinColumn,
 } from 'typeorm';
 import { Project } from './Project';
+import { User } from './User';
 
 @Entity({ name: 'jobs' })
 export class Job {
@@ -32,4 +34,8 @@ export class Job {
   @ManyToOne(() => Project, { onDelete: 'CASCADE' })
   @Exclude()
   project: Project;
+
+  @ManyToOne(() => User)
+  @JoinColumn()
+  executedBy: User;
 }

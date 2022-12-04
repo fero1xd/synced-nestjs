@@ -85,3 +85,9 @@ export type TransferOwnershipParams = {
   user: User;
   userToTransferEmail: string;
 };
+
+export type RemoveCollaboratorParams = {
+  projectId: string;
+  userToRemoveEmail: string;
+  user: User;
+};

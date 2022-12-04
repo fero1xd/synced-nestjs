@@ -23,4 +23,5 @@ export enum Events {
   OnJobDone = 'onJobDone',
   OnJobCreate = 'onJobCreate',
   OnProjectUpdate = 'onProjectUpdate',
+  OnCollaboratorRemove = 'onCollaboratorRemove',
 }

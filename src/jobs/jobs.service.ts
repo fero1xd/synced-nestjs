@@ -56,6 +56,7 @@ export class JobsService {
     const job = await this.jobRepository.save(
       this.jobRepository.create({
         project,
+        executedBy: user,
       }),
     );
 
@@ -75,6 +76,7 @@ export class JobsService {
 
     return await this.jobRepository.find({
       where: { project: { id, owner: { id: user.id } } },
+      relations: ['executedBy'],
       order: {
         submittedAt: 'DESC',
       },
@@ -86,7 +88,7 @@ export class JobsService {
 
     const job = await this.jobRepository.findOne({
       where: { id, project: { owner: { id: user.id } } },
-      relations: ['project'],
+      relations: ['project', 'executedBy'],
     });
 
     if (!job) throw new NotFoundException('Job not found');

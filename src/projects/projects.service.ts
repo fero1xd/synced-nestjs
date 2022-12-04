@@ -15,6 +15,7 @@ import {
   CreateProjectParams,
   DeleteProjectParams,
   GetProjectByIdParams,
+  RemoveCollaboratorParams,
   SaveProjectParams,
   TransferOwnershipParams,
 } from 'src/utils/types';
@@ -170,15 +171,67 @@ export class ProjectsService {
       throw new BadRequestException(
         'This user is not a collaborator in this project',
       );
+    if (userToTransfer.id === user.id)
+      throw new BadRequestException(
+        'You are already the owner of this project !',
+      );
 
     project.owner = userToTransfer;
 
-    this.eventEmitter.emit(Events.OnProjectUpdate, user, {
+    const returnable = {
       id: project.id,
       owner: project.owner,
       collaborators: project.collaborators,
-    });
-    return await this.projectRepository.save(project);
+    };
+
+    this.eventEmitter.emit(Events.OnProjectUpdate, user, returnable);
+    await this.projectRepository.save(project);
+    return returnable;
+  }
+
+  async removeCollaborator(params: RemoveCollaboratorParams) {
+    const { user, userToRemoveEmail, projectId } = params;
+
+    const project = await this.projectExists(null, user, projectId);
+    if (!project) throw new NotFoundException('Project not found');
+    if (project.owner.id !== user.id)
+      throw new BadRequestException('Unauthorized');
+    if (!project.isPublic)
+      throw new BadRequestException('This Project is not public');
+
+    const userToRemove = await this.usersService.userExists(userToRemoveEmail);
+    if (!userToRemove) throw new NotFoundException('User not found');
+
+    const isCollaborator = project.collaborators.some(
+      (c) => c.email === userToRemove.email,
+    );
+    if (!isCollaborator)
+      throw new BadRequestException(
+        'This user is not a collaborator in this project',
+      );
+
+    if (userToRemove.id === user.id)
+      throw new BadRequestException('You cannot remove yourself !');
+
+    project.collaborators = project.collaborators.filter(
+      (c) => c.id !== userToRemove.id,
+    );
+
+    const returnable = {
+      id: project.id,
+      owner: project.owner,
+      collaborators: project.collaborators,
+    };
+
+    this.eventEmitter.emit(
+      Events.OnCollaboratorRemove,
+      user,
+      userToRemove,
+      returnable,
+    );
+
+    await this.projectRepository.save(project);
+    return returnable;
   }
 
   async deleteProject(params: DeleteProjectParams) {
