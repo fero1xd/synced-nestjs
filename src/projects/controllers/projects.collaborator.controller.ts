@@ -5,6 +5,7 @@ import {
   Body,
   Inject,
   Get,
+  Post,
 } from '@nestjs/common';
 import { AuthenticatedGuard } from 'src/auth/utils/Guards';
 import { Routes, Services } from 'src/utils/constants';
@@ -22,7 +23,7 @@ export class ProjectsCollaboratorController {
     private readonly projectsService: ProjectsService,
   ) {}
 
-  @Patch('transfer')
+  @Post('transfer')
   async transferOwnership(
     @AuthUser() user: User,
     @Body() data: TransferOwnership,

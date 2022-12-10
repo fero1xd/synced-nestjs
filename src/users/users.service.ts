@@ -1,4 +1,5 @@
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+import { NotFoundException } from '@nestjs/common/exceptions';
 import { InjectRepository } from '@nestjs/typeorm';
 import { HashingService } from 'src/hashing/hashing.service';
 import { Services } from 'src/utils/constants';
@@ -27,6 +28,16 @@ export class UsersService {
         password: await this.hashingService.hashPassword(password),
       }),
     );
+  }
+
+  async findUserById(id: number) {
+    const user = await this.userRepository.findOne({
+      where: { id },
+    });
+
+    if (!user) throw new NotFoundException('User not found');
+
+    return user;
   }
 
   async userExists(email: string) {

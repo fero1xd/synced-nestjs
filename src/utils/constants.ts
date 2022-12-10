@@ -13,6 +13,7 @@ export enum Routes {
   AUTH = 'auth',
   JOBS = 'jobs',
   PROJECTS = 'projects',
+  USERS = 'users',
 }
 
 export enum Queues {
