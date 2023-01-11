@@ -48,9 +48,9 @@ Start the server
 
 ## Few Developement Screenshots
 
-![Home Screen](https://cdn-fero.tk/fc870ee1-c62a-4a94-8db1-b0edfe066373)
+![Home Screen](https://cdn-fero.tk/synced/home.png)
 
-![Project Screen](https://cdn-fero.tk/7a80606e-a21c-4ff3-87fd-64d25b9d7958)
+![Project Screen](https://cdn-fero.tk/synced/project.png)
 
 ## License
 
